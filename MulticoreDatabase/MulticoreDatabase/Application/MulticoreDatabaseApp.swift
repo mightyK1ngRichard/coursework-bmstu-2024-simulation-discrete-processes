@@ -11,7 +11,7 @@ import SwiftUI
 struct MulticoreDatabaseApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            DatabaseMonitoringView()
         }
     }
 }

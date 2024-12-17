@@ -10,17 +10,11 @@ import Charts
 
 struct ActivityChart: View {
     var activeReaders: Int
-    var isWriting: Bool
 
     var body: some View {
         VStack {
-            HStack {
-                Text("Читателей: \(activeReaders)")
-                    .foregroundColor(.green)
-                Spacer()
-                Text(isWriting && activeReaders == 0 ? "Запись активна" : "Нет записи")
-                    .foregroundColor(isWriting ? .red : .gray)
-            }
+            Text("Читателей: \(activeReaders)")
+                .foregroundColor(.green)
             .padding()
 
             Chart {
@@ -29,12 +23,6 @@ struct ActivityChart: View {
                     y: .value("Читатели", activeReaders)
                 )
                 .foregroundStyle(.green)
-
-                BarMark(
-                    x: .value("Активность", "Запись"),
-                    y: .value("Запись", isWriting && activeReaders == 0 ? 1 : 0)
-                )
-                .foregroundStyle(.red)
             }
             .frame(height: 200)
         }
@@ -50,9 +38,5 @@ struct ActivityChart: View {
 }
 
 #Preview {
-    ActivityChart(activeReaders: 4, isWriting: true)
+    ActivityChart(activeReaders: 4)
 }
-
-/*
- Модель конкурентного доступа к таблице базы данных под управлением PostgreSQL на многоядерном процессоре
-*/

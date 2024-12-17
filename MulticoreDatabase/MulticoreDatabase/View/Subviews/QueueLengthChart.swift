@@ -9,7 +9,7 @@ import SwiftUI
 import Charts
 
 struct QueueLengthChart: View {
-    var queueLengths: [(date: String, Int)]
+    var queueLengths: [(date: Date, Int)]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -40,7 +40,7 @@ struct QueueLengthChart: View {
 #Preview {
     QueueLengthChart(
         queueLengths: (1...100).map {
-            ("12:3\($0)", $0)
+            (Date(), $0)
         }
     )
 }

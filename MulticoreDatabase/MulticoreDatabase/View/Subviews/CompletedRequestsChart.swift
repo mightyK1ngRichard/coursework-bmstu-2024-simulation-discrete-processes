@@ -9,11 +9,11 @@ import SwiftUI
 import Charts
 
 struct CompletedRequestsChart: View {
-    var completedLog: [Agent]
+    let completedLog: [User]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Завершенные запросы")
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Таймлайн запросов")
                 .font(.headline)
                 .padding()
 
@@ -22,25 +22,30 @@ struct CompletedRequestsChart: View {
                     ForEach(completedLog, id: \.id) { agent in
                         PointMark(
                             x: .value("Время завершения", agent.finishTime!),
-                            y: .value("Номер запроса", Int(agent.id) ?? 0)
+                            y: .value("Номер запроса", agent.id)
                         )
                         .foregroundStyle(agent.operation == .write ? .red : .blue)
                         .symbol(agent.operation == .write ? .circle : .square)
                     }
                 }
-                .frame(width: CGFloat(completedLog.count) * 10)
+                .frame(width: CGFloat(completedLog.count) * 100)
                 .padding()
             }
             .frame(minHeight: 300)
+
+            // График для отображения длительности операций
+            Text("Длительность запросов")
+                .font(.headline)
+                .padding(.top)
 
             ScrollView(.horizontal) {
                 Chart {
                     ForEach(completedLog, id: \.id) { agent in
                         if let finishTime = agent.finishTime {
-                            let duration = finishTime.timeIntervalSince(agent.arrivalTime)
+                            let durationMilliseconds = finishTime.timeIntervalSince(agent.arrivalTime) * 1_000
                             BarMark(
-                                x: .value("Номер запроса", agent.id),
-                                y: .value("Длительность (сек)", duration)
+                                x: .value("ID запроса", agent.id),
+                                y: .value("Длительность (мс)", durationMilliseconds)
                             )
                             .foregroundStyle(
                                 agent.operation == .write
@@ -54,11 +59,15 @@ struct CompletedRequestsChart: View {
                     AxisMarks { value in
                         AxisGridLine()
                         AxisTick()
-                        AxisValueLabel()
+                        AxisValueLabel {
+                            if let doubleValue = value.as(Double.self) {
+                                Text("\(Int(doubleValue)) мс")
+                            }
+                        }
                     }
                 }
+                .frame(width: CGFloat(completedLog.count) * 40)
                 .frame(minHeight: 300)
-                .frame(width: CGFloat(completedLog.count) * 25)
                 .padding()
             }
         }
@@ -70,32 +79,32 @@ struct CompletedRequestsChart: View {
 // MARK: - Preview
 
 #Preview {
-    ScrollView {
-        CompletedRequestsChart(
-            completedLog: (1...100).compactMap {
-                let calendar = Calendar.current
-                guard
-                    let baseDate = calendar.date(
-                        from: DateComponents(year: 2023, month: 10, day: 1)
-                    ),
-                    let arrivalTime = calendar.date(
-                        byAdding: .minute,
-                        value: $0 + 3,
-                        to: baseDate
-                    )
-                else {
-                    return nil
-                }
-
-                let finishTime = arrivalTime.addingTimeInterval(Double.random(in: 30...300))
-
-                return Agent(
-                    id: String($0),
-                    operation: $0 % 2 == 0 ? .write : .read,
-                    arrivalTime: arrivalTime,
-                    finishTime: finishTime
-                )
-            }
+    // Данные для превью
+    let calendar = Calendar.current
+    let baseDate = calendar.date(from: DateComponents(year: 2024, month: 1, day: 1))!
+    let testData = [
+        User(
+            id: 1,
+            operation: .select,
+            arrivalTime: baseDate,
+            finishTime: baseDate.addingTimeInterval(0.002) // 2 мс
+        ),
+        User(
+            id: 2,
+            operation: .write,
+            arrivalTime: baseDate.addingTimeInterval(2), // Через 2 секунды
+            finishTime: baseDate.addingTimeInterval(2.01) // 10 мс
+        ),
+        User(
+            id: 3,
+            operation: .select,
+            arrivalTime: baseDate.addingTimeInterval(4), // Через 4 секунды
+            finishTime: baseDate.addingTimeInterval(4.005) // 5 мс
         )
+    ]
+
+    return ScrollView {
+        CompletedRequestsChart(completedLog: testData)
+            .padding()
     }
 }
